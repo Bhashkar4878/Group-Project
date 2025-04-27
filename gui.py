@@ -100,33 +100,53 @@ class PixelVaultApp:
         notebook.pack(fill=tk.BOTH, expand=True)
         
         # Encode tab
-        encode_frame = ttk.Frame(notebook, padding="10")
-        notebook.add(encode_frame, text="Encode")
+        # Scrollable Encode Frame Setup
+        encode_container = ttk.Frame(notebook)
+        notebook.add(encode_container, text="Encode")
+
+        encode_canvas = tk.Canvas(encode_container)
+        scrollbar = ttk.Scrollbar(encode_container, orient="vertical", command=encode_canvas.yview)
+
+        scrollable_encode_frame = ttk.Frame(encode_canvas)
+
+        scrollable_encode_frame.bind(
+            "<Configure>",
+            lambda e: encode_canvas.configure(
+            scrollregion=encode_canvas.bbox("all")
+            )
+        )
+
+        encode_canvas.create_window((0, 0), window=scrollable_encode_frame, anchor="nw")
+        encode_canvas.configure(yscrollcommand=scrollbar.set)
+
+        encode_canvas.pack(side="left", fill="both", expand=True)
+        scrollbar.pack(side="right", fill="y")
+
         
         # Decode tab
         decode_frame = ttk.Frame(notebook, padding="10")
         notebook.add(decode_frame, text="Decode")
         
         # Encode tab content
-        ttk.Label(encode_frame, text="Enter your secret message:", font=("Helvetica", 11)).pack(anchor='w', pady=(5, 2))
+        ttk.Label(scrollable_encode_frame, text="Enter your secret message:", font=("Helvetica", 11)).pack(anchor='w', pady=(5, 2))
         
-        self.message_entry = tk.Text(encode_frame, height=8, width=60)
+        self.message_entry = tk.Text(scrollable_encode_frame, height=8, width=60)
         self.message_entry.pack(fill=tk.BOTH, expand=True, pady=(0, 10))
         
-        encode_button_frame = ttk.Frame(encode_frame)
+        encode_button_frame = ttk.Frame(scrollable_encode_frame)
         encode_button_frame.pack(fill=tk.X, pady=10)
         
         ttk.Button(encode_button_frame, text="Select Image", command=self.select_encode_image).pack(side=tk.LEFT, padx=5)
         self.encode_button = ttk.Button(encode_button_frame, text="Encode Message", command=self.encode, state=tk.DISABLED)
         self.encode_button.pack(side=tk.LEFT, padx=5)
         
-        self.encode_image_label = ttk.Label(encode_frame, text="No image selected")
+        self.encode_image_label = ttk.Label(scrollable_encode_frame, text="No image selected")
         self.encode_image_label.pack(pady=5)
         
-        self.image_preview_encode = ttk.Label(encode_frame)
+        self.image_preview_encode = ttk.Label(scrollable_encode_frame)
         self.image_preview_encode.pack(pady=10)
         
-        self.encode_output_frame = ttk.LabelFrame(encode_frame, text="Encryption Results", padding="10")
+        self.encode_output_frame = ttk.LabelFrame(scrollable_encode_frame, text="Encryption Results", padding="10")
         self.encode_output_frame.pack(fill=tk.X, pady=10)
         
         self.output_label = ttk.Label(self.encode_output_frame, text="", wraplength=600)
